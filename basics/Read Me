@@ -1,1 +1,11 @@
+# Fundamentals of Geodetic Computing (Basics)
 
+This directory contains the foundational scripts and core algorithms for geodetic adjustment and parameter estimation. These scripts serve as the building blocks for more advanced stochastic models and complex network adjustments found in the root directory.
+
+## Contents
+* **Foundational Algorithms:** Basic implementations of parametric and conditional adjustment logic.
+* **Geodetic Utilities:** Script for coordinate transformations, unit conversions, and matrix manipulations specifically tailored for geomatics.
+* **Introductory Examples:** Simple cases of leveling (nivelman) and triangulation to demonstrate the core principles of Least Squares.
+
+## 🛠 Usage
+Each script in this folder is standalone and can be executed to see basic adjustment outputs. For complex parameter estimation, refer to the main repository's documentation.
