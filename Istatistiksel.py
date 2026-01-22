@@ -7,13 +7,11 @@ from scipy.stats import norm
 # Bir sınav var ortalama=60 standart sapma=10 ise öğrencilerin %70'i kaçtan daha düşük not almıştır?
 #   (x-ortalama)/standart_sapma =
 #   x= 52.44*standart_sapma + 60
-ortalama=60
-sd=10
-x=norm.ppf(0.7)*sd +  60
-print(x)
+loc=60
+scale=10
+print(norm.ppf(0.7,loc,scale))
 
 # 85 alan öğrenci % kaç öğrenicden daha yüksek almıştır?
-a=(85-60)/10
-print(a)
-print(norm.cdf(a))
+# (x-loc)/scale
+print(norm.cdf(85,loc,scale))
 
