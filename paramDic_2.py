@@ -334,10 +334,147 @@ def Kalman_Sabit_Hiz(x_prev, Cx_prev, delta_prev, L_curr, S, A, Cr, Ce):
     return x_curr, Cx_curr, delta_curr, G
 
 
+
+class Kollokasyon:
+    def __init__(self, x_coords, l_measures):
+        self.x = np.array(x_coords)
+        self.l = np.array(l_measures)
+        self.n = len(self.x)
+        self.A = np.column_stack((np.ones(self.n), self.x))
+        self.W_default = -self.l.reshape(-1, 1)
+
+    def _gauss_kernel(self, C0, a):
+        """Kollokasyon sınıfının kendi içindeki çekirdek hesaplayıcısı"""
+        Cs = np.zeros((self.n, self.n))
+        # EKK durumu (C0=0) için işlem yapmadan sıfır matris dön
+        if C0 == 0:
+            return Cs
+            
+        for i in range(self.n):
+            for j in range(self.n):
+                tau = self.x[j] - self.x[i]
+                Cs[i, j] = C0 * np.exp(-(a**2) * (tau**2))
+        return Cs
+
+    def coz(self, C0=0, a=0, sigma_noise=0.01, custom_W=None, custom_x0=None):
+        """
+        EKK çözümü için C0=0 parametresi gönderilmesi yeterlidir.
+        Ayrı bir 'metod' parametresine ihtiyaç yoktur.
+        """
+        # 0. Başlangıç Değerleri
+        if custom_W is not None:
+            w = np.array(custom_W).reshape(-1, 1)
+        else:
+            w = self.W_default
+            
+        u_params = self.A.shape[1]
+        if custom_x0 is not None:
+            x0 = np.array(custom_x0).reshape(-1, 1)
+        else:
+            x0 = np.zeros((u_params, 1))
+
+        # 1. Matrislerin Kurulumu
+        # Cr (Ölçüm Gürültüsü)
+        Cr = np.eye(self.n) * (sigma_noise**2)
+        
+        # Cs (Sinyal Kovaryansı) 
+        Cs = self._gauss_kernel(C0, a)
+        
+        # T Matrisi (Birim)
+        T = np.eye(self.n) 
+
+        # 2. Ana Matrisler
+        # M = inv(T*Cs*T' + Cr)
+        M = np.linalg.inv(T @ Cs @ T.T + Cr) 
+        
+        N = np.linalg.inv(self.A.T @ M @ self.A)
+        L_mat = M - (M @ self.A @ N @ self.A.T @ M)
+        
+        # 3. Parametre Kestirimi (Trend)
+        deltaCap = -N @ self.A.T @ M @ w
+        xCap = x0 + deltaCap
+        
+        # 4. Sinyal ve Gürültü
+        sCap = Cs @ T.T @ L_mat @ w
+        rCap = Cr @ L_mat @ w
+        
+        # Grafik Verileri
+        y_trend = xCap[0] + xCap[1] * self.x
+        y_total = y_trend + sCap.flatten()
+
+        return {
+            "w": w, "x0": x0, "Cs": Cs, "M": M, "N": N, "L": L_mat, 
+            "deltaCap": deltaCap, "xCap": xCap, "sCap": sCap, "rCap": rCap,
+            "y_total": y_total, "y_trend": y_trend
+        }
+
+# =================================================================
+# 2. PREDIKSIYON SINIFI (Kestirim Yapar)
+# =================================================================
+class Prediksiyon:
+    def __init__(self, solver_obj, result_dict, C0, a):
+        """
+        solver_obj : x koordinatlarını almak için
+        result_dict: Çözüm sonuçlarını (L, w, xCap...) almak için
+        """
+        self.x_train = solver_obj.x
+        self.res = result_dict
+        self.C0 = C0
+        self.a = a
+        self.T = np.eye(len(self.x_train))
+
+    def _gauss_kernel(self, x1, x2, C0, a):
+        """
+        BU FONKSİYON ARTIK SINIFIN İÇİNDE (PRIVATE METHOD).
+        x1: Yeni noktalar (p)
+        x2: Eski noktalar (s)
+        """
+        n1 = len(x1)
+        n2 = len(x2)
+        C = np.zeros((n1, n2))
+        
+        if C0 == 0:
+            return C
+            
+        for i in range(n1):
+            for j in range(n2):
+                tau = x2[j] - x1[i]
+                C[i, j] = C0 * np.exp(-(a**2) * (tau**2))
+        return C
+
+    def tahmin_et(self, x_p_coords):
+        x_p = np.array(x_p_coords)
+        
+        # Verileri çek
+        L = self.res["L"]
+        w = self.res["w"]
+        xCap = self.res["xCap"]
+        sCap_train = self.res["sCap"]
+        
+        # 1. Csps (Cross Covariance)
+        # Artık sınıfın kendi içindeki fonksiyonu kullanıyoruz (self._gauss_kernel)
+        Csps = self._gauss_kernel(x_p, self.x_train, self.C0, self.a)
+        
+        # 2. SpCap (Kestirilen Sinyal)
+        SpCap = -Csps @ self.T.T @ L @ w
+        
+        # 3. Trend ve Toplam
+        A_p = np.column_stack((np.ones(len(x_p)), x_p))
+        Trend_p = A_p @ xCap
+        Total_p = Trend_p + SpCap
+
+        # 4. z Vektörü
+        z_vector = np.vstack((SpCap, sCap_train))
+
+        return {
+            "x_p": x_p, "Csps": Csps, "SpCap": SpCap,
+            "Trend_p": Trend_p, "Total_p": Total_p, "z_vector": z_vector
+        }
+
 class KalmanFiltresi:
     def __init__(self, model_tipi="sabit_hiz"):
         """
-        model_tipi: "sabit_hiz" veya "sabit_ivme"
+        model_tipi: "sabit_hiz" & "sabit_ivme"
         """
         self.model_tipi = model_tipi
         
@@ -347,7 +484,7 @@ class KalmanFiltresi:
         - Cx_prev: Kovaryans matrisi 
         - delta_prev: Düzeltme vektörü 
         - L_curr: Ölçüm vektörü 
-        - dt: Zaman farkı
+        - dt: Zaman farki
         - A: Ölçüm matrisi 
         - Cr: Ölçüm gürültüsü 
         - Ce: Sistem gürültüsü 
@@ -388,12 +525,6 @@ class KalmanFiltresi:
         delta_curr = delta_pred - (G @ (W + (A @ delta_pred)))
         x_curr = x_pred + delta_curr
         Cx_curr = (I - G @ A) @ Cx_pred
-        return x_curr, Cx_curr, delta_curr, G
+        return x_curr, Cx_curr, delta_curr, G,W,S,Cx_pred,x_pred,x_prev
 
 
-        
-    
-
-
-    
-        
