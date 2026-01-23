@@ -8,8 +8,6 @@ L_measures = np.array([
     [-63.45, -203.74],  
     [28.33, -24.47]     
 ])
-
-
 # SABİT HIZ 
 # Durum Vektörü: [x, y, vx, vy]
 x_cap = np.array([[-188.74], [-390.69], [6.67], [6.32]])

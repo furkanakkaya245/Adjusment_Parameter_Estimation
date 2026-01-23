@@ -35,8 +35,6 @@ def raporla(baslik, sonuc):
 W_tahta = [0.0, 0.0000495, -1.341501, -2.5550515, -3.758402]
 x0_tahta = [0.6108, 0.3291] 
 
-print("Çözüm Başlatılıyor (Yuvarlama Yok)...")
-
 # DÜZELTME: 'metod' parametresi SİLİNDİ
 sonuc_B = solver.coz(
     C0=0.1260, 
