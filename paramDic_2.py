@@ -279,7 +279,7 @@ class Kollokasyon:
 
 class Prediksiyon:
     def __init__(self, solver_obj, result_dict, C0, a):
-        self.x_train = solver_obj.x
+        self.x_train = solver_obj
         self.res = result_dict
         self.C0 = C0
         self.a = a
@@ -295,7 +295,7 @@ class Prediksiyon:
                 tau = x2[j] - x1[i]
                 C[i, j] = C0 * np.exp(-(a**2) * (tau**2))
         return C
-    def tahmin_et(self, x_p_coords):
+    def hesapla(self, x_p_coords):
         x_p = np.array(x_p_coords)
         L = self.res["L"]
         w = self.res["w"]
@@ -307,10 +307,8 @@ class Prediksiyon:
         Trend_p = A_p @ xCap
         Total_p = Trend_p + SpCap
         z_vector = np.vstack((SpCap, sCap_train))
-        return {
-            "x_p": x_p, "Csps": Csps, "SpCap": SpCap,
-            "Trend_p": Trend_p, "Total_p": Total_p, "z_vector": z_vector
-        }
+        return x_p, Csps, SpCap, Trend_p, Total_p, z_vector
+
 
 class KalmanFiltresi:
     def __init__(self, model_tipi="sabit_hiz"):

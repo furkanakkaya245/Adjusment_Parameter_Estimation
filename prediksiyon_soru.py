@@ -1,5 +1,5 @@
 import numpy as np
-from paramDic_2 import Cr_, deltaCap_standart, xCap, kollakasyon
+from paramDic_2 import Cr_, deltaCap_standart, xCap
 import matplotlib.pyplot as plt
 
 ############################################ A
@@ -28,8 +28,8 @@ print("deltaCap_a:\n", deltaCap_)
 print("xCap_a:\n", xCap_)
 
 # Çizim için veriler
-x = np.array([x01, x02, x03, x04, x05,x06, x07, x08, x09, x10])
-y = np.array([y01, y02, y03, y04, y05,y06, y07, y08, y09, y10])
+x = np.array([x0[0], x0[1], x0[2], x0[3], x0[4], x0[5], x0[6], x0[7], x0[8], x0[9]])
+y = np.array([y0[0], y0[1], y0[2], y0[3], y0[4], y0[5], y0[6], y0[7], y0[8], y0[9]])
 
 # Doğru çizimi
 a0 = deltaCap_[0]
@@ -90,19 +90,3 @@ deltaCap2 = -N@A.T@M@W
 xCap_b=xCap(x0_,deltaCap2)
 print(f"\ndeltaCap_b:\n{deltaCap2}")
 print(f"xCap_b:\n{xCap_b}\n")
-
-###################################### C
-a=2
-C0=100
-Cs = C0 * np.exp(-(a * a) * (tao ** 2))  
-print(Cs)
-Cr = np.eye(10)*0.01
-M = np.linalg.inv(Cr + Cs)
-A = np.array([[1, x] for x in x0])
-N = np.linalg.inv(A.T@M@A)
-L = M-M@A@N@A.T@M
-deltaCap3 = -N@A.T@M@W
-xCap_c=xCap(x0_,deltaCap2)
-print(f"deltaCap_c:\n{deltaCap3}")
-print(f"xCap_c:\n{xCap_c}\n")
-
