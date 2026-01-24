@@ -65,7 +65,6 @@ print("DeltaCap:\n", deltaCap_a)
 print("CxCap =\n", CxCap_a)
 print("rCap:\n", rCap_a)
 print("xCap\n", xCap_a)
-
 # B ŞIKKI: KOLLOKASYON ÇÖZÜMÜ
 C0= 45.465591395093156
 a= 1.0
@@ -92,8 +91,6 @@ print("L Matrisi:\n", L_mat_b)
 print("Cs Matrisi:\n", Cs_b)
 print("Cr Matrisi:\n", Cr_b)
 print("y_total:\n", y_total_b)
-
-
 # C ŞIKKI:
 C0= 100 
 a= 2.0
@@ -120,16 +117,12 @@ print("L Matrisi:\n", L_mat_c)
 print("Cs Matrisi:\n", Cs_c)
 print("Cr Matrisi:\n", Cr_c)
 print("y_total:\n", y_total_c)
-
 plt.figure(figsize=(12, 8))
-
 # 1. Orijinal Ölçüler
 # x_val ve y_val'in numpy array olduğundan emin olalım (Garanti olsun)
 x_val = np.array(x_val).flatten()
 y_val = np.array(y_val).flatten()
-
 plt.scatter(x_val, y_val, color='red', s=80, label='Ölçülen Değerler', zorder=5)
-
 # A Şıkkı: EKK Doğrusu
 a0 = float(xCap_a[0])
 a1 = float(xCap_a[1]) 
