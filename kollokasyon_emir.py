@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 # -- coding: utf-8 --
-
-
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-
-
-""" deltakep xcap rcap doğru sonuç veriyor """
 # VERİLER
 x01 = 0
 x02 =  1.445

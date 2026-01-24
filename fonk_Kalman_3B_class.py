@@ -13,9 +13,9 @@ L_measures = np.array([
 x_cap = np.array([[-188.74], [-390.69], [6.67], [6.32]])
 Cx_cap = np.diag([9.0, 9.0, 25.0, 25.0])
 # delta_cap = x_cap
-delta_cap = np.zeros((4, 1))
-Cr = np.eye(2) * 9.0 # Ölçüm Gürültüsü
-Ce = np.eye(4) * 1.0 # Sistem Gürültüsü 
+delta_cap = np.zeros((2, 1))
+Cr = np.eye(4) * 9.0 # Ölçüm Gürültüsü
+Ce = np.eye(2) * 1.0 # Sistem Gürültüsü 
 A = np.array([[1, 0, 0, 0], 
               [0, 1, 0, 0]])
 

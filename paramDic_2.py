@@ -40,7 +40,6 @@ def kosullu_deltaCap(A,Ac,W,Wc,Cr,olcum_say,sig_olcum):
     return deltaCap_standart(A,Cr,W)-DdeltaCap_(A,Cr,W,Ac,Wc)
 def L(d1,d2):
         return d1-d2
-
 class Direkt_AdimAdim_Cozum:
     def __init__(self,ilkOlcum,ikinciOlcum,A,W,sig):
         self.ilkOlcum=ilkOlcum
@@ -50,7 +49,6 @@ class Direkt_AdimAdim_Cozum:
         self.sig=sig
         self.A1=self.A2[:self.ilkOlcum:]
         self.W1=self.W2[:self.ilkOlcum:]
-        
 
     def __Cr1(self):
         return np.eye(self.ilkOlcum)*(self.sig**2)
@@ -91,68 +89,62 @@ class Direkt_AdimAdim_Cozum:
 class Direkt_AdimAdim_Cozum_Trilaterasyon:
     
     def __init__(self, ilkOlcum, ikinciOlcum, A, W, sig):
-        self.ilkOlcum = ilkOlcum  # n1 = 6
-        self.ikinciOlcum = ikinciOlcum  # n2 = 6
+        self.ilkOlcum = ilkOlcum  
+        self.ikinciOlcum = ikinciOlcum 
         self.sig = sig
         
-        # 1. Aşama Gözlemleri (İlk 6)
+       
         self.A1 = A[:self.ilkOlcum, :]  # A1 matrisi: 6x2
         self.W1 = W[:self.ilkOlcum, :]  # W1 matrisi: 6x1
         
-        # 2. Aşama Gözlemleri (Sonraki 6)
-        # HATA DÜZELTİLDİ: A2 ve W2, A ve W'nun kalan kısmıdır.
+       
         self.A2 = A[self.ilkOlcum:, :]  # A2 matrisi: 6x2
         self.W2 = W[self.ilkOlcum:, :]  # W2 matrisi: 6x1
 
-    # --- Kovaryans ve Normal Matris Fonksiyonları ---
+    
 
     def __Cr1(self):
-        """1. aşama gözlemleri için kovaryans matrisi (6x6)"""
+        
         return np.eye(self.ilkOlcum) * (self.sig**2)
     
     def __Cr2(self):
-        """2. aşama gözlemleri için kovaryans matrisi (6x6)"""
+        
         return np.eye(self.ikinciOlcum) * (self.sig**2)
     
     def __N1(self):
-        """1. aşama normal matrisi (2x2)"""
+       
         return self.A1.T @ inv(self.__Cr1()) @ self.A1
     
     def __N2(self):
-        """2. aşama normal matrisi (2x2)"""
+        
         return self.A2.T @ inv(self.__Cr2()) @ self.A2
     
     def __M(self):
-        """Gözlem Kovaryans Matrisinin Tersidir: C_r2^-1 (6x6)"""
+        
         return inv(self.__Cr2())
     
-    # --- Kestirim Fonksiyonları ---
+
 
     def deltaCap(self):
-        """İlk aşama düzeltmesi (delta_x1)"""
+       
         return -(inv(self.__N1()) @ self.A1.T @ inv(self.__Cr1()) @ self.W1)
     
     def deltaS(self):
-        """İkinci aşamadan gelen düzeltme vektörü (delta_s)"""
-        # C_delta_x1 = N1^-1 (İlk kestirimin kovaryans matrisi)
+        
         C_delta_x1 = inv(self.__N1()) 
         
-        # V = (M^-1 + A2 * C_delta_x1 * A2.T)
         V = inv(self.__M()) + (self.A2 @ C_delta_x1 @ self.A2.T)
         
-        # delta_s = - C_delta_x1 * A2.T * inv(V) * (A2 * delta_x1 + W2)
         return (-C_delta_x1 @ self.A2.T) @ inv(V) @ ((self.A2 @ self.deltaCap()) + self.W2)
     
     def direktDeltaCapSon(self):
-        """Tüm gözlemleri tek adımda kullanarak elde edilen sonuç (Direkt Kestirim)"""
-        # N_toplam = N1 + N2
-        # u_toplam = u1 + u2
+        
         u1 = self.A1.T @ inv(self.__Cr1()) @ self.W1
         u2 = self.A2.T @ inv(self.__Cr2()) @ self.W2
         return -(inv(self.__N1() + self.__N2())) @ (u1 + u2)
     
     def birliteDeltaCapSon(self):
-        """Adım Adım Kestirim Sonucu: delta_x1 + delta_s"""
+        
         return self.deltaCap() + self.deltaS()
 
 class trilaterasyon_cozum:
@@ -207,7 +199,6 @@ class triangulasyon_aci:
         return math.atan2(self.__FarkEl()[1],self.__FarkEl()[0])
 
 class trilaterasyon_cozum:
-    # ... (Trilaterasyon class'ı aynı kalacak) ...
     def __init__(self,x1,y1,x2,y2):
         self.x1=x1
         self.y1=y1
@@ -232,240 +223,90 @@ class TriangulasyonAciGradyan:
         if self.Payda == 0:
             raise ValueError("Noktalar çakışıyor! Türev paydası sıfır olamaz.")
         
-        # Ortak terimler: S^2
         self.S_kare = self.Payda
         
     def gradyan_hesapla(self):
-        
-        # d(açı)/d(parametre) formülleri:
-        # d(açı)/dx = Dy / S^2
-        # d(açı)/dy = -Dx / S^2
-        
-        # d(açı) / dx1 = (Dy / S^2) * (-1) = -Dy / S^2
         dx1 = -self.Dy / self.S_kare 
-        
-        # d(açı) / dy1 = (-Dx / S^2) * (-1) = Dx / S^2
         dy1 = self.Dx / self.S_kare 
-        
-        # d(açı) / dx2 = (Dy / S^2) * (1) = Dy / S^2
         dx2 = self.Dy / self.S_kare 
-        
-        # d(açı) / dy2 = (-Dx / S^2) * (1) = -Dx / S^2
         dy2 = -self.Dx / self.S_kare 
-        
         return dx1, dy1, dx2, dy2
-
-class kollakasyon:
-    def __init__(self,olcu_say,olcu_hata,A,W,C0,T,xs,a):
-        self.olcu_say=olcu_say
-        self.olcu_hata=olcu_hata
-        self.T=T
-        self.A=A
-        self.W=W
-        self.C0=C0
-        self.xs=xs
-        self.a=a
-    def __Cs(self):
-        n = len(self.xs)
-        Cs = np.zeros([n,n])
-        for i in range(n):
-            for j in range(n):
-                Tau = self.xs[j]-self.xs[i]
-                Cs[i,j] = self.C0 * math.exp(-1*self.a*Tau**2)
-        return Cs
-    def __M(self):
-        return inv(self.T@self.__Cs()@self.T.T+Cr_(self.olcu_say,self.olcu_hata))
-    def __N(self):
-        return inv(self.A.T@self.__M()@self.A)
-    def __deltaCap(self):
-        return -(self.__N()@self.A.T@self.__M()@self.W)
-    def __L(self):
-        return self.__M()-(self.__M()@self.A@self.__N()@self.A.T@self.__M())
-    def __sCap(self):
-        return self.__Cs()@self.T.T@self.__L()@self.W
-    def __rCap(self):
-        return Cr_(self.olcu_say,self.olcu_hata)@self.__L()@self.W
-    def __CrCap(self):
-        return Cr_(self.olcu_say,self.olcu_hata)@self.__L()@Cr_(self.olcu_say,self.olcu_hata)
-    def __CsCap(self):
-        return self.__Cs()@self.T.T@self.__L()@self.T@self.__Cs()
-    def __CsCaprCap(self):
-        return self.__Cs()@self.T.T@self.__L()@Cr_(self.olcu_say,self.olcu_hata)
-    def sonuc(self):
-        deltaCap=self.__deltaCap()
-        sCap=self.__sCap()
-        rCap=self.__rCap()
-        CrCap=self.__CrCap()
-        CsCap=self.__CsCap()
-        CsrCap=self.__CsCaprCap()
-        Cs=self.__Cs()
-        L=self.__L()
-        return deltaCap,sCap,rCap,CrCap,CsCap,CsrCap,Cs,L
-
 def Kalman_Sabit_Hiz(x_prev, Cx_prev, delta_prev, L_curr, S, A, Cr, Ce):
-    """
-    - x_prev: Bir önceki evrenin durum vektörü (x_cap)
-    - Cx_prev: Bir önceki evrenin kovaryans matrisi (Cx_cap)
-    - delta_prev: Bir önceki evrenin düzeltme miktarı (delta_cap)
-    - L_curr: Mevcut evrenin ölçüm vektörü
-    - S: Geçiş matrisi
-    - A: Ölçüm katsayılar matrisi (H)
-    - Cr: Ölçüm gürültüsü (R)
-    - Ce: Sistem gürültüsü (Q)
-    """
     I = np.eye(len(x_prev))
-    
-    # --- 1. Tahmin (Prediction) ---
     x_pred = S @ x_prev
     Cx_pred = (S @ Cx_prev @ S.T) + Ce
     delta_pred = S @ delta_prev
-    
-    # --- 2. Kazanç (Gain) ---
     K = Cx_pred
     G = K @ A.T @ inv((A @ K @ A.T) + Cr)
-    
-    # --- 3. Güncelleme (Update) ---
     W = (A @ x_pred) - L_curr
     delta_curr = delta_pred - (G @ (W + (A @ delta_pred)))
-    
     x_curr = x_pred + delta_curr
     Cx_curr = (I - G @ A) @ Cx_pred
-    
     return x_curr, Cx_curr, delta_curr, G
 
-
-
 class Kollokasyon:
-    def __init__(self, x_coords, l_measures):
+    def __init__(self, x_coords):
         self.x = np.array(x_coords)
-        self.l = np.array(l_measures)
         self.n = len(self.x)
         self.A = np.column_stack((np.ones(self.n), self.x))
-        self.W_default = -self.l.reshape(-1, 1)
-
     def _gauss_kernel(self, C0, a):
-        """Kollokasyon sınıfının kendi içindeki çekirdek hesaplayıcısı"""
         Cs = np.zeros((self.n, self.n))
-        # EKK durumu (C0=0) için işlem yapmadan sıfır matris dön
         if C0 == 0:
-            return Cs
-            
+            return Cs   
         for i in range(self.n):
             for j in range(self.n):
                 tau = self.x[j] - self.x[i]
                 Cs[i, j] = C0 * np.exp(-(a**2) * (tau**2))
         return Cs
-
-    def coz(self, C0=0, a=0, sigma_noise=0.01, custom_W=None, custom_x0=None):
-        """
-        EKK çözümü için C0=0 parametresi gönderilmesi yeterlidir.
-        Ayrı bir 'metod' parametresine ihtiyaç yoktur.
-        """
-        # 0. Başlangıç Değerleri
-        if custom_W is not None:
-            w = np.array(custom_W).reshape(-1, 1)
-        else:
-            w = self.W_default
-            
-        u_params = self.A.shape[1]
-        if custom_x0 is not None:
-            x0 = np.array(custom_x0).reshape(-1, 1)
-        else:
-            x0 = np.zeros((u_params, 1))
-
-        # 1. Matrislerin Kurulumu
-        # Cr (Ölçüm Gürültüsü)
-        Cr = np.eye(self.n) * (sigma_noise**2)
-        
-        # Cs (Sinyal Kovaryansı) 
-        Cs = self._gauss_kernel(C0, a)
-        
-        # T Matrisi (Birim)
-        T = np.eye(self.n) 
-
-        # 2. Ana Matrisler
-        # M = inv(T*Cs*T' + Cr)
-        M = np.linalg.inv(T @ Cs @ T.T + Cr) 
-        
+    def hesapla(self, W, x0, C0, a, sigma_noise):
+        W = np.array(W).reshape(-1, 1)
+        x0 = np.array(x0).reshape(-1, 1)
+        Cr = np.eye(self.n) * (sigma_noise**2)  # Gürültü (Mv)
+        Cs = self._gauss_kernel(C0, a)          # Sinyal (Ms)
+        # M = inv(Cs + Cr)
+        M = np.linalg.inv(Cs + Cr)
+        # N = inv(A' * M * A)
         N = np.linalg.inv(self.A.T @ M @ self.A)
+        # L = M - M*A*N*A'*M
         L_mat = M - (M @ self.A @ N @ self.A.T @ M)
-        
-        # 3. Parametre Kestirimi (Trend)
-        deltaCap = -N @ self.A.T @ M @ w
+        deltaCap = -N @ self.A.T @ M @ W
         xCap = x0 + deltaCap
-        
-        # 4. Sinyal ve Gürültü
-        sCap = Cs @ T.T @ L_mat @ w
-        rCap = Cr @ L_mat @ w
-        
-        # Grafik Verileri
-        y_trend = xCap[0] + xCap[1] * self.x
-        y_total = y_trend + sCap.flatten()
+        sCap = Cs @ L_mat @ W
+        rCap = Cr @ L_mat @ W
+        y_trend = self.A @ xCap
+        y_total = y_trend + sCap
+        return xCap, deltaCap, sCap, rCap, M, N, L_mat, Cs, Cr, y_total
 
-        return {
-            "w": w, "x0": x0, "Cs": Cs, "M": M, "N": N, "L": L_mat, 
-            "deltaCap": deltaCap, "xCap": xCap, "sCap": sCap, "rCap": rCap,
-            "y_total": y_total, "y_trend": y_trend
-        }
-
-# =================================================================
-# 2. PREDIKSIYON SINIFI (Kestirim Yapar)
-# =================================================================
 class Prediksiyon:
     def __init__(self, solver_obj, result_dict, C0, a):
-        """
-        solver_obj : x koordinatlarını almak için
-        result_dict: Çözüm sonuçlarını (L, w, xCap...) almak için
-        """
         self.x_train = solver_obj.x
         self.res = result_dict
         self.C0 = C0
         self.a = a
         self.T = np.eye(len(self.x_train))
-
     def _gauss_kernel(self, x1, x2, C0, a):
-        """
-        BU FONKSİYON ARTIK SINIFIN İÇİNDE (PRIVATE METHOD).
-        x1: Yeni noktalar (p)
-        x2: Eski noktalar (s)
-        """
         n1 = len(x1)
         n2 = len(x2)
         C = np.zeros((n1, n2))
-        
         if C0 == 0:
-            return C
-            
+            return C   
         for i in range(n1):
             for j in range(n2):
                 tau = x2[j] - x1[i]
                 C[i, j] = C0 * np.exp(-(a**2) * (tau**2))
         return C
-
     def tahmin_et(self, x_p_coords):
         x_p = np.array(x_p_coords)
-        
-        # Verileri çek
         L = self.res["L"]
         w = self.res["w"]
         xCap = self.res["xCap"]
         sCap_train = self.res["sCap"]
-        
-        # 1. Csps (Cross Covariance)
-        # Artık sınıfın kendi içindeki fonksiyonu kullanıyoruz (self._gauss_kernel)
         Csps = self._gauss_kernel(x_p, self.x_train, self.C0, self.a)
-        
-        # 2. SpCap (Kestirilen Sinyal)
         SpCap = -Csps @ self.T.T @ L @ w
-        
-        # 3. Trend ve Toplam
         A_p = np.column_stack((np.ones(len(x_p)), x_p))
         Trend_p = A_p @ xCap
         Total_p = Trend_p + SpCap
-
-        # 4. z Vektörü
         z_vector = np.vstack((SpCap, sCap_train))
-
         return {
             "x_p": x_p, "Csps": Csps, "SpCap": SpCap,
             "Trend_p": Trend_p, "Total_p": Total_p, "z_vector": z_vector
@@ -473,25 +314,10 @@ class Prediksiyon:
 
 class KalmanFiltresi:
     def __init__(self, model_tipi="sabit_hiz"):
-        """
-        model_tipi: "sabit_hiz" & "sabit_ivme"
-        """
         self.model_tipi = model_tipi
-        
     def adim_hesapla(self, x_prev, Cx_prev, delta_prev, L_curr, dt, A, Cr, Ce):
-        """
-        - x_prev: Durum vektörü 
-        - Cx_prev: Kovaryans matrisi 
-        - delta_prev: Düzeltme vektörü 
-        - L_curr: Ölçüm vektörü 
-        - dt: Zaman farki
-        - A: Ölçüm matrisi 
-        - Cr: Ölçüm gürültüsü 
-        - Ce: Sistem gürültüsü 
-        """
         n = len(x_prev)
         I = np.eye(n)
-       
         if self.model_tipi == "sabit_hiz":
             if n == 2: 
                 S = np.array([[1, dt],
@@ -514,8 +340,6 @@ class KalmanFiltresi:
                               [0, 0, 0, 1, 0, dt],
                               [0, 0, 0, 0, 1, 0],
                               [0, 0, 0, 0, 0, 1]])
-        
-
         x_pred = S @ x_prev
         Cx_pred = (S @ Cx_prev @ S.T) + Ce
         delta_pred = S @ delta_prev

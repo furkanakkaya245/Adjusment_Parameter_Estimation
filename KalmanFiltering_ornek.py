@@ -18,7 +18,7 @@ v=np.array([0.0,
 # Durum vektörü = bilinmeyenler
 
 # t1 evresi
-
+print("--- t1 evresi ---")
 x_0=np.array([0.0,0.00])
 
 L=np.array([x[0],v[0]])
@@ -41,7 +41,7 @@ xCap1=x_0+deltaCap1
 print("xCap1:",xCap1)
 
 # t2 evresi prediction
-
+print("\n--- t2 evresi ---")
 # geçiş matrisi (S)
 
 dt=t[1]-t[0]
@@ -89,7 +89,7 @@ print()
 print("CxCap2:",CxCap2)
 
 # t3 evresi prediction
-
+print("\n--- t3 evresi ---")
 dt=t[2]-t[1]
 S=np.array([[1,dt],
             [0,1]])
