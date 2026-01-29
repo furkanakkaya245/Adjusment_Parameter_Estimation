@@ -56,3 +56,17 @@ ust_sinir = norm.ppf(0.995, loc, scale)
 alt_sinir = norm.ppf(0.005, loc, scale)
 print(f"3-b: [{alt_sinir:.4f} mm, {ust_sinir:.4f} mm]")
 
+# 9.soru 
+loc=65.4 # ortalama
+scale=14.6 # standart sapma
+print(f"\n81.6'dan az olma olasılığı: {norm.cdf(81.6,loc,scale)} ")
+print(f"81.6 ortalama ile başarı sırası: {12500-12500*norm.cdf(81.6,loc,scale)}")
+
+# 10.soru
+loc=59.2
+scale=19.1
+# A şıkkı
+print(f"\n82.7'dan az olma olasılığı: {norm.cdf(82.7,loc,scale)} ")
+print(f"82.7 ortalama ile başarı sırası: {103985-103985*norm.cdf(82.7,loc,scale)}")
+# B şıkkı
+print(f"ilk 100' e girmek için alması gereken puan: {norm.ppf((103885/103985),loc,scale)}")
