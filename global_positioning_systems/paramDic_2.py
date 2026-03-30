@@ -376,19 +376,94 @@ class KalmanFiltresi:
         x_curr = x_pred + delta_curr
         Cx_curr = (I - G @ A) @ Cx_pred
         return x_curr, Cx_curr, delta_curr, G,W,S,Cx_pred,x_pred,x_prev
-def D(phi1,lam1):
-    phi=dms_to_radian(phi1,0,0)
-    lam=dms_to_radian(lam1,0,0)
-    return np.array([[-np.sin(phi),-np.sin(phi)*np.cos(lam),np.cos(phi)*np.cos(lam)],
-                     [np.cos(phi),-np.sin(phi)*np.sin(lam), np.cos(phi)*np.sin(lam) ],
-                     [0, np.cos(phi),np.sin(phi)]])
-def R(phi1,lam1):
-    phi=dms_to_radian(phi1,0,0)
-    lam=dms_to_radian(lam1,0,0)
-    return np.array([[-np.sin(phi)*np.cos(lam), -np.sin(lam), np.cos(phi)*np.cos(lam)],
-                     [-np.sin(phi)*np.sin(lam), np.cos(lam),np.cos(phi)*np.sin(lam)],
-                     [np.cos(phi), 0,np.sin(phi)]])
+
+class GNSS_DOP:
+    def __init__(self, lat_deg, lon_deg, h_meters):
+        self.update_receiver_position(lat_deg, lon_deg, h_meters)
+        self.satellites = [] 
+        
+    def update_receiver_position(self, lat_deg, lon_deg, h_meters):
+        self.lat_deg = lat_deg
+        self.lon_deg = lon_deg
+        self.h = h_meters
+        self.a = 6378137.0
+        self.b = 6356752.3142
+        self.e2 = (self.a**2 - self.b**2) / self.a**2
+        self.lat_rad = math.radians(lat_deg)
+        self.lon_rad = math.radians(lon_deg)
+        self.ecef_hesapla()
+        self.rotasyon_matrisi()
+
+    def ecef_hesapla(self):
+        sin_lat = math.sin(self.lat_rad)
+        cos_lat = math.cos(self.lat_rad)
+        N = self.a / math.sqrt(1 - self.e2 * (sin_lat**2))
+        
+        self.X = (N + self.h) * cos_lat * math.cos(self.lon_rad)
+        self.Y = (N + self.h) * cos_lat * math.sin(self.lon_rad)
+        self.Z = (N * (1 - self.e2) + self.h) * sin_lat
+
+    def rotasyon_matrisi(self):
+        sin_lat = math.sin(self.lat_rad)
+        cos_lat = math.cos(self.lat_rad)
+        sin_lon = math.sin(self.lon_rad)
+        cos_lon = math.cos(self.lon_rad)
+        
+        self.R_enu = np.array([
+            [-sin_lon,           cos_lon,           0],       
+            [-sin_lat*cos_lon,  -sin_lat*sin_lon,  cos_lat],  
+            [ cos_lat*cos_lon,   cos_lat*sin_lon,  sin_lat]   
+        ])
+
+    def uydu_ekle(self, prn, az_deg, el_deg):
+        self.satellites.append({
+            'prn': prn, 
+            'az': math.radians(az_deg), 
+            'el': math.radians(el_deg)
+        })
+
+    def A(self):
+        if len(self.satellites) < 4:
+            raise ValueError("Kestirim için en az 4 uydu gereklidir.")
+            
+        A_list = []
+        for sat in self.satellites:
+            e_E = math.cos(sat['el']) * math.sin(sat['az'])
+            e_N = math.cos(sat['el']) * math.cos(sat['az'])
+            e_U = math.sin(sat['el'])
+            
+            u_enu = np.array([[e_E], [e_N], [e_U]])
+            u_ecef = self.R_enu.T @ u_enu
+            
+            A_list.append([-u_ecef[0][0], -u_ecef[1][0], -u_ecef[2][0], 1])
+            
+        return np.array(A_list)
+
+    def hesapla_dop(self):
+        if len(self.satellites) < 4:
+            raise ValueError("DOP hesabı için en az 4 uydu gereklidir.")
+
+        A_enu_list = []
+        for sat in self.satellites:
+            e_E = math.cos(sat['el']) * math.sin(sat['az'])
+            e_N = math.cos(sat['el']) * math.cos(sat['az'])
+            e_U = math.sin(sat['el'])
+            
+            A_enu_list.append([-e_E, -e_N, -e_U, 1])
+            
+        A_enu = np.array(A_enu_list)
+        
+        Q = inv(A_enu.T @ A_enu)
+        
+        dops = {
+            "GDOP": math.sqrt(np.trace(Q)),
+            "PDOP": math.sqrt(Q[0][0] + Q[1][1] + Q[2][2]),
+            "HDOP": math.sqrt(Q[0][0] + Q[1][1]), 
+            "VDOP": math.sqrt(Q[2][2]),           
+            "TDOP": math.sqrt(Q[3][3])            
+        }
+        return dops
 
 
     
-
+print("----------- paramDic_2 basari ile import edildi -----------")

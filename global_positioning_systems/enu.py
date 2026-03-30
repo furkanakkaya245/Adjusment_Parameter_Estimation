@@ -20,13 +20,14 @@ sat_loc=np.array([[1,197,35],
                   [8,133,89],
                   [9,296,70],
                   [13,348,40]])
+
 l_1=l(rho,sat_loc[0][1],sat_loc[0][2])
 l_3=l(rho,sat_loc[1][1],sat_loc[1][2])
 l_8=l(rho,sat_loc[2][1],sat_loc[2][2])
 l_9=l(rho,sat_loc[3][1],sat_loc[3][2])
 l_13=l(rho,sat_loc[4][1],sat_loc[4][2])
 
-print("Uyduların Kartezyen koordinatları:")
+print("Uyduların Kartezyen Koordinatları:")
 print(l_1)
 print(l_3)
 print(l_8)
