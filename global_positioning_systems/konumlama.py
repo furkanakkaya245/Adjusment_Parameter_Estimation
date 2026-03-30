@@ -1,33 +1,10 @@
-from paramDic_2 import deltaCap_standart, Cr_,xCap
+from paramDic_2 import deltaCap_standart, Cr_
+from paramDic_2 import GNSS_trilaterasyon as konumlama
 import numpy as np
 import math 
 from numpy.linalg import inv
 
-def mesafe_3b(x1,y1,z1,x2,y2,z2):
-    dx=x2-x1
-    dy=y2-y1
-    dz=z2-z1
-    return math.hypot(dx,dy,dz)
-    
-class trilaterasyon_cozum_3b:
-    def __init__(self,x1,y1,z1,x2,y2,z2):
-        self.x1=x1
-        self.y1=y1
-        self.z1=z1
-        self.x2=x2
-        self.y2=y2
-        self.z2=z2
-    def d0(self):
-        d0=mesafe_3b(self.x1,self.y1,self.z1,self.x2,self.y2,self.z2)
-        return d0
-    def turev(self):
-        dx1=(-1)*(self.x2-self.x1)/(self.d0())
-        dy1=(-1)*(self.y2-self.y1)/(self.d0())
-        dz1=(-1)*(self.z2-self.z1)/(self.d0())
-        dx2=(self.x2-self.x1)/(self.d0())
-        dy2=(self.y2-self.y1)/(self.d0())
-        dz2=(self.z2-self.z1)/(self.d0())
-        return dx1,dy1,dz1,dx2,dy2,dz2
+
 
 X1= 4124040.844
 Y1= 2655252.244
@@ -87,27 +64,27 @@ G25= 23968592.219
 G32= 25215461.555
 
 
-d06=trilaterasyon_cozum_3b(X1,Y1,Z1,G06x,G06y,G06z).d0()
-d11=trilaterasyon_cozum_3b(X1,Y1,Z1,G11x,G11y,G11z).d0()
-d12=trilaterasyon_cozum_3b(X1,Y1,Z1,G12x,G12y,G12z).d0()
-d13=trilaterasyon_cozum_3b(X1,Y1,Z1,G13x,G13y,G13z).d0()
-d15=trilaterasyon_cozum_3b(X1,Y1,Z1,G15x,G15y,G15z).d0()
-d17=trilaterasyon_cozum_3b(X1,Y1,Z1,G17x,G17y,G17z).d0()
-d19=trilaterasyon_cozum_3b(X1,Y1,Z1,G19x,G19y,G19z).d0()
-d24=trilaterasyon_cozum_3b(X1,Y1,Z1,G24x,G24y,G24z).d0()
-d25=trilaterasyon_cozum_3b(X1,Y1,Z1,G25x,G25y,G25z).d0()
-d32=trilaterasyon_cozum_3b(X1,Y1,Z1,G32x,G32y,G32z).d0()
+d06=konumlama(X1,Y1,Z1,G06x,G06y,G06z).d0()
+d11=konumlama(X1,Y1,Z1,G11x,G11y,G11z).d0()
+d12=konumlama(X1,Y1,Z1,G12x,G12y,G12z).d0()
+d13=konumlama(X1,Y1,Z1,G13x,G13y,G13z).d0()
+d15=konumlama(X1,Y1,Z1,G15x,G15y,G15z).d0()
+d17=konumlama(X1,Y1,Z1,G17x,G17y,G17z).d0()
+d19=konumlama(X1,Y1,Z1,G19x,G19y,G19z).d0()
+d24=konumlama(X1,Y1,Z1,G24x,G24y,G24z).d0()
+d25=konumlama(X1,Y1,Z1,G25x,G25y,G25z).d0()
+d32=konumlama(X1,Y1,Z1,G32x,G32y,G32z).d0()
 
-A=np.array([[trilaterasyon_cozum_3b(X1,Y1,Z1,G06x,G06y,G06z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G06x,G06y,G06z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G06x,G06y,G06z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G11x,G11y,G11z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G11x,G11y,G11z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G11x,G11y,G11z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G12x,G12y,G12z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G12x,G12y,G12z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G12x,G12y,G12z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G13x,G13y,G13z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G13x,G13y,G13z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G13x,G13y,G13z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G15x,G15y,G15z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G15x,G15y,G15z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G15x,G15y,G15z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G17x,G17y,G17z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G17x,G17y,G17z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G17x,G17y,G17z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G19x,G19y,G19z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G19x,G19y,G19z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G19x,G19y,G19z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G24x,G24y,G24z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G24x,G24y,G24z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G24x,G24y,G24z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G25x,G25y,G25z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G25x,G25y,G25z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G25x,G25y,G25z).turev()[2],1],
-            [trilaterasyon_cozum_3b(X1,Y1,Z1,G32x,G32y,G32z).turev()[0],trilaterasyon_cozum_3b(X1,Y1,Z1,G32x,G32y,G32z).turev()[1],trilaterasyon_cozum_3b(X1,Y1,Z1,G32x,G32y,G32z).turev()[2],1]])
+A=np.array([[konumlama(X1,Y1,Z1,G06x,G06y,G06z).turev()[0],konumlama(X1,Y1,Z1,G06x,G06y,G06z).turev()[1],konumlama(X1,Y1,Z1,G06x,G06y,G06z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G11x,G11y,G11z).turev()[0],konumlama(X1,Y1,Z1,G11x,G11y,G11z).turev()[1],konumlama(X1,Y1,Z1,G11x,G11y,G11z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G12x,G12y,G12z).turev()[0],konumlama(X1,Y1,Z1,G12x,G12y,G12z).turev()[1],konumlama(X1,Y1,Z1,G12x,G12y,G12z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G13x,G13y,G13z).turev()[0],konumlama(X1,Y1,Z1,G13x,G13y,G13z).turev()[1],konumlama(X1,Y1,Z1,G13x,G13y,G13z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G15x,G15y,G15z).turev()[0],konumlama(X1,Y1,Z1,G15x,G15y,G15z).turev()[1],konumlama(X1,Y1,Z1,G15x,G15y,G15z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G17x,G17y,G17z).turev()[0],konumlama(X1,Y1,Z1,G17x,G17y,G17z).turev()[1],konumlama(X1,Y1,Z1,G17x,G17y,G17z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G19x,G19y,G19z).turev()[0],konumlama(X1,Y1,Z1,G19x,G19y,G19z).turev()[1],konumlama(X1,Y1,Z1,G19x,G19y,G19z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G24x,G24y,G24z).turev()[0],konumlama(X1,Y1,Z1,G24x,G24y,G24z).turev()[1],konumlama(X1,Y1,Z1,G24x,G24y,G24z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G25x,G25y,G25z).turev()[0],konumlama(X1,Y1,Z1,G25x,G25y,G25z).turev()[1],konumlama(X1,Y1,Z1,G25x,G25y,G25z).turev()[2],1],
+            [konumlama(X1,Y1,Z1,G32x,G32y,G32z).turev()[0],konumlama(X1,Y1,Z1,G32x,G32y,G32z).turev()[1],konumlama(X1,Y1,Z1,G32x,G32y,G32z).turev()[2],1]])
 print(f"A={A}")
 W=np.array([[d06-G06],
             [d11-G11],

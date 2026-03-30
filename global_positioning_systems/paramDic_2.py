@@ -379,10 +379,10 @@ class KalmanFiltresi:
 
 class GNSS_DOP:
     def __init__(self, lat_deg, lon_deg, h_meters):
-        self.update_receiver_position(lat_deg, lon_deg, h_meters)
+        self.alıcı_konumunu_güncelle(lat_deg, lon_deg, h_meters)
         self.satellites = [] 
         
-    def update_receiver_position(self, lat_deg, lon_deg, h_meters):
+    def alıcı_konumunu_güncelle(self, lat_deg, lon_deg, h_meters):
         self.lat_deg = lat_deg
         self.lon_deg = lon_deg
         self.h = h_meters
@@ -463,6 +463,32 @@ class GNSS_DOP:
             "TDOP": math.sqrt(Q[3][3])            
         }
         return dops
+
+def mesafe_3b(x1,y1,z1,x2,y2,z2):
+    dx=x2-x1
+    dy=y2-y1
+    dz=z2-z1
+    return math.hypot(dx,dy,dz)
+    
+class GNSS_trilaterasyon:
+    def __init__(self,x1,y1,z1,x2,y2,z2):
+        self.x1=x1
+        self.y1=y1
+        self.z1=z1
+        self.x2=x2
+        self.y2=y2
+        self.z2=z2
+    def d0(self):
+        d0=mesafe_3b(self.x1,self.y1,self.z1,self.x2,self.y2,self.z2)
+        return d0
+    def turev(self):
+        dx1=(-1)*(self.x2-self.x1)/(self.d0())
+        dy1=(-1)*(self.y2-self.y1)/(self.d0())
+        dz1=(-1)*(self.z2-self.z1)/(self.d0())
+        dx2=(self.x2-self.x1)/(self.d0())
+        dy2=(self.y2-self.y1)/(self.d0())
+        dz2=(self.z2-self.z1)/(self.d0())
+        return dx1,dy1,dz1,dx2,dy2,dz2
 
 
     
