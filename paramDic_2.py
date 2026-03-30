@@ -349,4 +349,11 @@ class KalmanFiltresi:
         Cx_curr = (I - G @ A) @ Cx_pred
         return x_curr, Cx_curr, delta_curr, G,W,S,Cx_pred,x_pred,x_prev
 
+def D(phi1,lam1):
+    phi=dms_to_radian(phi1,0,0)
+    lam=dms_to_radian(lam1,0,0)
+    return np.array([[-np.sin(phi),-np.sin(phi)*np.cos(lam),np.cos(phi)*np.cos(lam)],
+                     [np.cos(phi),-np.sin(phi)*np.sin(lam), np.cos(phi)*np.sin(lam) ],
+                     [0, np.cos(phi),np.sin(phi)]])
+
 
