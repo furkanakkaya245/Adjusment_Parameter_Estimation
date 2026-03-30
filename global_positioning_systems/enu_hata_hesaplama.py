@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
 
-# sat_num, az, elev
 sat_loc = np.array([[1, 197, 35],
                     [3, 45, 20],
                     [8, 133, 89],
@@ -14,7 +13,6 @@ def calculate_dops(sat_data):
         az = np.radians(sat[1])
         el = np.radians(sat[2])
         
-        # ENU Birim Vektörleri
         e = np.cos(el) * np.sin(az)
         n = np.cos(el) * np.cos(az)
         u = np.sin(el)
@@ -22,9 +20,9 @@ def calculate_dops(sat_data):
         A.append([-e, -n, -u, 1])
     
     A = np.array(A)
-    Q = inv(A.T @ A) # Geometrik matris (sigma^2 içermez)
+    Q = inv(A.T @ A) 
     
-    # DOP değerleri diyagonal elemanların kareköküdür
+
     EDOP = np.sqrt(Q[0, 0])
     NDOP = np.sqrt(Q[1, 1])
     VDOP = np.sqrt(Q[2, 2])

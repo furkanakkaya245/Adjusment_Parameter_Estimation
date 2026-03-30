@@ -34,12 +34,15 @@ print(l_9)
 print(l_13)
 
 R1=R(39.887,32.758)
+print(f"R1:\n{R1}")
 
 delta_1=R1@l_1
 delta_3=R1@l_3
 delta_8=R1@l_8
 delta_9=R1@l_9
 delta_13=R1@l_13
+
+print(f"delta_1:\n{delta_1}")
 
 lat_1= 39.887
 lon_1= 32.758
@@ -53,7 +56,7 @@ e2=(a**2-b**2)/a**2
 print(f"e2={e2}")
 
 
-N=a/1-(e2*(np.sin(lat))**2)*0.5
+N=a/(1-(e2*(np.sin(lat))**2)*0.5)
 print(f"N:{N}")
 print("\nalıcı konum:")
 Xr=(N+h)*np.cos(lat)*np.cos(lon)
@@ -61,11 +64,11 @@ Yr=(N+h)*np.cos(lat)*np.sin(lon)
 Zr=(N*(1-e2)+h)*np.sin(lat)
 print(f"Xr:{Xr}\nYr:{Yr}\nZr:{Zr}\n")
 
-d_1=((l_1[0][0]-Xr)**2+(l_1[1][0]-Yr)**2+(l_1[2][0]-Zr))**0.5
-d_3=((l_3[0][0]-Xr)**2+(l_3[1][0]-Yr)**2+(l_3[2][0]-Zr))**0.5
-d_8=((l_8[0][0]-Xr)**2+(l_8[1][0]-Yr)**2+(l_8[2][0]-Zr))**0.5
-d_9=((l_9[0][0]-Xr)**2+(l_9[1][0]-Yr)**2+(l_9[2][0]-Zr))**0.5
-d_13=((l_13[0][0]-Xr)**2+(l_13[1][0]-Yr)**2+(l_13[2][0]-Zr))**0.5
+d_1=((delta_1[0][0]-Xr)**2+(delta_1[1][0]-Yr)**2+(delta_1[2][0]-Zr))**0.5
+d_3=((delta_3[0][0]-Xr)**2+(delta_3[1][0]-Yr)**2+(delta_3[2][0]-Zr))**0.5
+d_8=((delta_8[0][0]-Xr)**2+(delta_8[1][0]-Yr)**2+(delta_8[2][0]-Zr))**0.5
+d_9=((delta_9[0][0]-Xr)**2+(delta_9[1][0]-Yr)**2+(delta_9[2][0]-Zr))**0.5
+d_13=((delta_13[0][0]-Xr)**2+(delta_13[1][0]-Yr)**2+(delta_13[2][0]-Zr))**0.5
 
 
 def turev(us,mesafe):
@@ -89,6 +92,7 @@ def R2enu(phi1,lam1):
                      [np.cos(phi)*np.cos(lam), np.cos(phi)*np.sin(lam),np.sin(phi)]])
 Cxyz_yeni=Cxyz[:3,:3]
 R2=R2enu(39.887,32.758)
+print(f"R2:\n{R2}")
 Cneu=R2.T@Cxyz_yeni@R2
 
 GDOP= ((Cxyz[0][0]**2+Cxyz[1][1]**2+Cxyz[2][2]**2+Cxyz[3][3]**2)/(sig**2))**0.5
