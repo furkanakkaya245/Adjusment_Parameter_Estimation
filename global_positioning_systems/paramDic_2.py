@@ -489,7 +489,50 @@ class GNSS_trilaterasyon:
         dy2=(self.y2-self.y1)/(self.d0())
         dz2=(self.z2-self.z1)/(self.d0())
         return dx1,dy1,dz1,dx2,dy2,dz2
-
-
     
+def ecef_to_geodetic(x, y, z):
+    # WGS84 Elipsoid Sabitleri
+    a = 6378137.0
+    b = 6356752.3142
+    e2 = (a**2 - b**2) / a**2
+    ep2 = (a**2 - b**2) / b**2
+    
+    p = math.sqrt(x**2 + y**2)
+    th = math.atan2(a * z, b * p)
+    
+    lon_rad = math.atan2(y, x)
+    lat_rad = math.atan2(z + ep2 * b * math.sin(th)**3, p - e2 * a * math.cos(th)**3)
+    
+    N = a / math.sqrt(1 - e2 * math.sin(lat_rad)**2)
+    h = (p / math.cos(lat_rad)) - N
+    
+    lat_deg = math.degrees(lat_rad)
+    lon_deg = math.degrees(lon_rad)
+    
+    return lat_deg, lon_deg, h
+def geodetic_to_ecef(lat_deg, lon_deg, h):
+    """
+    Jeodezik koordinatları (Enlem, Boylam, Yükseklik) 
+    ECEF Kartezyen koordinatlarına (X, Y, Z) dönüştürür.
+    Dikkat: Enlem ve Boylam DERECE cinsinden girilmelidir.
+    """
+    # WGS84 Sabitleri
+    a = 6378137.0
+    b = 6356752.3142
+    e2 = (a**2 - b**2) / a**2
+    
+    # 1. KRİTİK ADIM: Dereceleri trigonometri için radyana çevir
+    lat_rad = math.radians(lat_deg)
+    lon_rad = math.radians(lon_deg)
+    
+    # 2. Normal (Düşey Kavis) Yarıçapı (N)
+    N = a / math.sqrt(1 - e2 * math.sin(lat_rad)**2)
+    
+    # 3. X, Y, Z Kartezyen Bileşenleri
+    X = (N + h) * math.cos(lat_rad) * math.cos(lon_rad)
+    Y = (N + h) * math.cos(lat_rad) * math.sin(lon_rad)
+    Z = ((N * (1 - e2)) + h) * math.sin(lat_rad)
+    
+    return X, Y, Z
+
 print("----------- paramDic_2 basari ile import edildi -----------")

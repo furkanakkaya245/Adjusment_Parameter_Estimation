@@ -1,10 +1,7 @@
-from paramDic_2 import deltaCap_standart, Cr_
+from paramDic_2 import deltaCap_standart, Cr_, dms_to_radian
 from paramDic_2 import GNSS_trilaterasyon as konumlama
 import numpy as np
-import math 
 from numpy.linalg import inv
-
-
 
 X1= 4124040.844
 Y1= 2655252.244
@@ -49,8 +46,6 @@ G25z = 9008928.532
 G32x = 2838903.927
 G32y = -15089793.387
 G32z = 21815968.274
-
-
 
 G06= 22500694.445
 G11= 23877527.117
@@ -101,11 +96,74 @@ print(f"W={W}")
 sig=3
 Cr=Cr_(10,sig)
 deltaCap=deltaCap_standart(A,Cr,W)
+xCap=X1+deltaCap[0].item()
+yCap=Y1+deltaCap[1].item()
+zCap=Z1+deltaCap[2].item()
 print(f"deltaCap:\ndeltaX={deltaCap[0]}\ndeltaY={deltaCap[1]}\ndeltaZ={deltaCap[2]}")
-print(f"xCap:\ndeltaX={X1+deltaCap[0]}\ndeltaY={Y1+deltaCap[1]}\ndeltaZ={Z1+deltaCap[2]}")
+print(f"xCap:\ndeltaX={X1+deltaCap[0]}\ndeltaY={Y1+deltaCap[1]}\ndeltaZ={Z1+deltaCap[2]}\n")
 
 
 
+def R2enu(phi1,lam1):
+    phi=dms_to_radian(phi1,0,0)
+    lam=dms_to_radian(lam1,0,0)
+    return np.array([[-np.sin(phi)*np.cos(lam), -np.sin(phi)*np.sin(lam), np.cos(phi)],
+                     [-np.sin(lam), np.cos(lam), 0],
+                     [np.cos(phi)*np.cos(lam), np.cos(phi)*np.sin(lam),np.sin(phi)]])
+
+uydu_koordinatlari = {
+    "G06": (G06x, G06y, G06z),
+    "G11": (G11x, G11y, G11z),
+    "G12": (G12x, G12y, G12z),
+    "G13": (G13x, G13y, G13z),
+    "G15": (G15x, G15y, G15z),
+    "G17": (G17x, G17y, G17z),
+    "G19": (G19x, G19y, G19z),
+    "G24": (G24x, G24y, G24z),
+    "G25": (G25x, G25y, G25z),
+    "G32": (G32x, G32y, G32z)
+}
+
+R = R2enu(39.887, 32.758)
+
+def calculate_satellite_angles(konum):
+    
+    E = float(konum[0].item())
+    N = float(konum[1].item())
+    U = float(konum[2].item())
+    
+    elevation_rad = np.arctan2(U, (E**2 + N**2)**0.5)
+    elev_deg= np.degrees(elevation_rad)
+    # zenith_deg = 90.0 - elev_deg
+    
+    azimuth_rad = np.arctan2(N , E)
+    azimuth_deg = np.degrees(azimuth_rad) % 360.0
+    
+    return elev_deg, azimuth_deg
+
+def tum_uydulari_hesapla(uydu_dict, alici_x, alici_y, alici_z, R_matrisi):
+    
+    sonuclar = {} 
+    
+    print("Sat Angels (azimut/elevation):\n")
+    for uydu_id, (ux, uy, uz) in uydu_dict.items():
+      
+        Dx = float(ux - alici_x)
+        Dy = float(uy - alici_y)
+        Dz = float(uz - alici_z)
+        
+        enu = R_matrisi @ np.array([[Dx], [Dy], [Dz]])
+        
+        zenith, azimuth = calculate_satellite_angles(enu)
+        
+        sonuclar[uydu_id] = {"Zenit": zenith, "Azimut": azimuth}
+        print(f"Uydu {uydu_id} Zenit Açısı  : {zenith} derece")
+        print(f"Uydu {uydu_id} Azimut Açısı : {azimuth} derece\n")
+        
+  
+    return sonuclar
+
+uydu_acilari = tum_uydulari_hesapla(uydu_koordinatlari, xCap, yCap, zCap, R)
 
 
 
