@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+print("a")
+=======
 import numpy as np
 from paramDic_2 import GNSS_DOP
 
@@ -19,3 +22,4 @@ for key, value in dops.items():
     print(f"{key}: {value}")
 
     
+>>>>>>> 4f4f387d60439d701ccfff6d89b3d6d390827b80

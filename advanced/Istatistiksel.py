@@ -1,0 +1,72 @@
+import scipy as sp
+from scipy.stats import norm
+from scipy.stats import chi2
+from scipy.stats import t
+from scipy.stats import f
+
+import numpy as np
+
+# print(norm.ppf(0.95)) # percent point function
+# print(norm.cdf(1.64485))
+
+# NORMAL DAĞILIM
+# Bir sınav var ortalama=60 standart sapma=10 ise öğrencilerin %70'i kaçtan daha düşük not almıştır?
+#   (x-ortalama)/standart_sapma =
+#   x= 52.44*standart_sapma + 60
+loc=60
+scale=10
+# print(norm.ppf(0.7,loc,scale))
+
+# print(norm.cdf(2.4,loc=1,scale=2))
+
+# 85 alan öğrenci % kaç öğrenicden daha yüksek almıştır?
+# (x-loc)/scale
+# print(norm.cdf(85,loc,scale))
+
+# Kİ-KARE DAĞILIMI
+# varyans = (r.T@inv(Cr)@r)/(n-u) (n-u) serbestlik derecesi
+# print(chi2.pdf(0.9,df=5))
+
+# T-DAĞILIMI
+# t.pdf(0.025)
+# t.pdf(0.975) olasılıklara denk gelen nokta değerleri
+
+# Direkt ve Ters Problemler
+# olasılık verilip değer bulunması       : Ters      ppf
+# değer verilip olasılığının bulunması   : Direkt    cdf
+
+loc=1
+scale= 4**0.5
+print(f"1-a: {norm.cdf(2.4,loc,scale)}") # Direkt Problem
+print(f"1-b: {norm.cdf(-1.1,loc,scale)}")
+print(f"1-c: {1-norm.cdf(1.1,loc,scale)}")
+print(f"1-d: {norm.cdf(8,loc,scale)-norm.cdf(2,loc,scale)}\n")
+loc=0
+scale= 1**0.5
+print(f"2-a: {norm.ppf(0.10,loc,scale)}") # Ters Problem
+print(f"2-b: {norm.ppf(0.20,loc,scale)}")
+print(f"2-c: {norm.ppf((1-0.05),loc,scale)}")
+print(f"2-d_min: {norm.ppf(0.025,loc,scale)}")
+print(f"2-d_max: {norm.ppf(0.975,loc,scale)}\n") # -c ve +c arası 0.95 olduğu için simetrik olması için 0.025sol tarafı alındı. 
+# ortalama 0 dan farlı olmasından kaynaklı böyle 0 olmasaydı 0.025 ve 0.975 alınacaktı.iki taraflı ölçü alınacaktı
+loc=1
+scale=0.01**0.5
+print(f"3-a: {1-(norm.cdf(1.02,loc,scale)-norm.cdf(0.98,loc,scale))}")
+ust_sinir = norm.ppf(0.995, loc, scale)
+alt_sinir = norm.ppf(0.005, loc, scale)
+print(f"3-b: [{alt_sinir:.4f} mm, {ust_sinir:.4f} mm]")
+
+# 9.soru 
+loc=65.4 # ortalama
+scale=14.6 # standart sapma
+print(f"\n81.6'dan az olma olasılığı: {norm.cdf(81.6,loc,scale)} ")
+print(f"81.6 ortalama ile başarı sırası: {12500-12500*norm.cdf(81.6,loc,scale)}")
+
+# 10.soru
+loc=59.2
+scale=19.1
+# A şıkkı
+print(f"\n82.7'dan az olma olasılığı: {norm.cdf(82.7,loc,scale)} ")
+print(f"82.7 ortalama ile başarı sırası: {103985-103985*norm.cdf(82.7,loc,scale)}")
+# B şıkkı
+print(f"ilk 100' e girmek için alması gereken puan: {norm.ppf((103885/103985),loc,scale)}")
