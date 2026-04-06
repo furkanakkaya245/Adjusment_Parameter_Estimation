@@ -166,5 +166,3 @@ def tum_uydulari_hesapla(uydu_dict, alici_x, alici_y, alici_z, R_matrisi):
 uydu_acilari = tum_uydulari_hesapla(uydu_koordinatlari, xCap, yCap, zCap, R)
 
 
-
-

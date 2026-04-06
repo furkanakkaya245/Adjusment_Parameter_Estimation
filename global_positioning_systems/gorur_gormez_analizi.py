@@ -3,7 +3,7 @@ from paramDic_2 import GNSS
 from paramDic_2 import geodetic_to_ecef
 import numpy as np
 from numpy.linalg import inv
-import math
+
 
 ANK_angle=np.array([[40],
                     [33]])

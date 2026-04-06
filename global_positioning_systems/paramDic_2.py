@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import inv
 import math
+from typing import Union, Tuple
 
 def mesafe(x1,y1,x2,y2):
     dx=x2-x1
@@ -524,6 +525,47 @@ def geodetic_to_ecef(lat_deg, lon_deg, h):
     
     return X, Y, Z
 
+def egri_to_enu(elev1, az1, range):
+    elev=dms_to_radian(elev1,0,0)
+    az=dms_to_radian(az1,0,0)
+    return np.array([[range*np.cos(elev)*np.sin(az)],
+                     [range*np.cos(elev)*np.cos(az)],
+                     [range*np.sin(elev)]])
+def geodetic_to_ecef(
+    lat: Union[float, np.ndarray], 
+    lon: Union[float, np.ndarray], 
+    h: Union[float, np.ndarray], 
+    degrees: bool = True) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray], Union[float, np.ndarray]]:
+   
+    lat = np.asarray(lat, dtype=float)
+    lon = np.asarray(lon, dtype=float)
+    h = np.asarray(h, dtype=float)
+
+    if degrees:
+        lat_rad = np.deg2rad(lat)
+        lon_rad = np.deg2rad(lon)
+    else:
+        lat_rad = lat
+        lon_rad = lon
+
+    a = 6378137.0 
+    f = 1.0 / 298.257223563 
+    e2 = 2*f - f**2
+
+    sin_lat = np.sin(lat_rad)
+    cos_lat = np.cos(lat_rad)
+    
+    N = a / np.sqrt(1.0 - e2 * (sin_lat**2))
+
+    X = (N + h) * cos_lat * np.cos(lon_rad)
+    Y = (N + h) * cos_lat * np.sin(lon_rad)
+    Z = (N * (1.0 - e2) + h) * sin_lat
+
+    if X.ndim == 0:
+        return float(X), float(Y), float(Z)
+    
+    return X, Y, Z
+
 class GNSS:
     
     @staticmethod
@@ -624,6 +666,32 @@ class GNSS:
         return GDOP, PDOP,HDOP,VDOP,TDOP
     
     @staticmethod
+    def azimuth_elev_dop(sat_data):
+        A = []
+        for sat in sat_data:
+            az = np.radians(sat[1])
+            el = np.radians(sat[2])
+        
+            e = np.cos(el) * np.sin(az)
+            n = np.cos(el) * np.cos(az)
+            u = np.sin(el)
+        
+            A.append([-e, -n, -u, 1])
+    
+        A = np.array(A)
+        Q = inv(A.T @ A) 
+
+        EDOP = np.sqrt(Q[0, 0])
+        NDOP = np.sqrt(Q[1, 1])
+        VDOP = np.sqrt(Q[2, 2])
+        TDOP = np.sqrt(Q[3, 3])
+        HDOP = np.sqrt(EDOP**2 + NDOP**2)
+        PDOP = np.sqrt(EDOP**2 + NDOP**2 + VDOP**2)
+        GDOP = np.sqrt(PDOP**2 + TDOP**2)
+    
+        return GDOP, PDOP, HDOP, VDOP, TDOP
+
+    @staticmethod
     def R2enu(phi1,lam1):
         phi=dms_to_radian(phi1,0,0)
         lam=dms_to_radian(lam1,0,0)
@@ -666,6 +734,7 @@ class GNSS:
             print(f"{uydu_id} Azimut Açisi : {azimuth} derece\n")
         
         return sonuclar
+    
     @staticmethod
     def gorur_gormez_analizi(sat_array, alici_x, alici_y, alici_z, R_matrisi):
 
@@ -696,7 +765,5 @@ class GNSS:
         print(f"\nToplam {len(sat_array)} uydudan {len(gorunen_sat_array)} tanesi kullanıma uygun.")
         
         return gorunen_sat_array
-
-
 
 print("----------- paramDic_2 basari ile import edildi -----------")
