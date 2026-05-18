@@ -27,7 +27,7 @@ def rCap_(A,deltaCap,W):
     return A@deltaCap+W
 def CxCap_(A,Cr):
     return inv(A.T@inv(Cr)@A)
-def CrCap_(A,Cr,N):
+def CrCap_(A,Cr):
     return Cr-(A@inv(N_standart(A,Cr))@A.T)
 def ClCap_(A,Cr):
     return A@inv(N_standart(A,Cr))@A.T
@@ -338,7 +338,6 @@ class Prediksiyon:
         z_vector = np.vstack((SpCap, sCap_train))
         return x_p, Csps, SpCap, Trend_p, Total_p, z_vector
 
-
 class KalmanFiltresi:
     def __init__(self, model_tipi="sabit_hiz"):
         self.model_tipi = model_tipi
@@ -511,7 +510,8 @@ def ecef_to_geodetic(x, y, z):
     lon_deg = math.degrees(lon_rad)
     
     return lat_deg, lon_deg, h
-def geodetic_to_ecef(lat_deg, lon_deg, h):
+
+def geodetic_to_ecef_(lat_deg, lon_deg, h):
     
     a = 6378137.0
     b = 6356752.3142
@@ -556,10 +556,16 @@ def geodetic_to_ecef(
     cos_lat = np.cos(lat_rad)
     
     N = a / np.sqrt(1.0 - e2 * (sin_lat**2))
+    print(f"N : {N}")
 
     X = (N + h) * cos_lat * np.cos(lon_rad)
     Y = (N + h) * cos_lat * np.sin(lon_rad)
     Z = (N * (1.0 - e2) + h) * sin_lat
+
+    print(f"X : {X}")
+    print(f"Y : {Y}")
+    print(f"Z : {Z}")
+    
 
     if X.ndim == 0:
         return float(X), float(Y), float(Z)
@@ -567,10 +573,8 @@ def geodetic_to_ecef(
     return X, Y, Z
 
 class GNSS:
-    
     @staticmethod
     def kartezyen_konumlama(sat_loc, rev_x, rev_y, rev_z, pseudoranges, sig=3):
-        
         X1 = rev_x
         Y1 = rev_y
         Z1 = rev_z
@@ -611,9 +615,15 @@ class GNSS:
         yCap = Y1 + deltaY
         zCap = Z1 + deltaZ
 
+        rCap=rCap_(A,deltaCap,W)
+        CxCap=CxCap_(A,Cr)
+
+
         print(f"A:{A}")
         print(f"W:{W}")
-
+        print(f"Cr:{Cr}")
+        print(f"rCap:{rCap}")
+        print(f"CxCap:{CxCap}")
         print("\ndeltaCap :")
         print(f"deltaX = {deltaX} m")
         print(f"deltaY = {deltaY} m")
@@ -625,45 +635,6 @@ class GNSS:
         print(f"z = {zCap} m")
         
         return A, W, xCap, yCap, zCap, deltaX, deltaY, deltaZ
-    
-    @staticmethod
-    def uydu_DOP(Sat_coor,rec_x,rec_y,rec_z,R):
-        Rec_X = rec_x
-        Rec_Y = rec_y
-        Rec_Z = rec_z
-
-        A_list = []
-
-        for sat in Sat_coor:
-            sx = float(sat[0].item())
-            sy = float(sat[1].item())
-            sz = float(sat[2].item())
-            dx = sx - Rec_X
-            dy = sy - Rec_Y
-            dz = sz - Rec_Z
-            rho = math.sqrt(dx**2 + dy**2 + dz**2)
-            ax = -dx / rho
-            ay = -dy / rho
-            az = -dz / rho
-            A_list.append([ax, ay, az, 1])
-
-        A = np.array(A_list)
-        Q = inv(A.T @ A)
-        Q_xyz = Q[:3, :3]
-        Q_enu = R @ Q_xyz @ R.T
-        GDOP = math.sqrt(np.trace(Q))               
-        PDOP = math.sqrt(np.trace(Q_xyz))           
-        HDOP = math.sqrt(Q_enu[0, 0] + Q_enu[1, 1]) 
-        VDOP = math.sqrt(Q_enu[2, 2])               
-        TDOP = math.sqrt(Q[3, 3])                  
-
-        print(f"\nDOP Değerleri")
-        print(f"GDOP : {GDOP}")
-        print(f"PDOP : {PDOP}")
-        print(f"HDOP : {HDOP}")
-        print(f"VDOP : {VDOP}")
-        print(f"TDOP : {TDOP}\n")
-        return GDOP, PDOP,HDOP,VDOP,TDOP
     
     @staticmethod
     def azimuth_elev_dop(sat_data):
@@ -688,6 +659,9 @@ class GNSS:
         HDOP = np.sqrt(EDOP**2 + NDOP**2)
         PDOP = np.sqrt(EDOP**2 + NDOP**2 + VDOP**2)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
+
+        print(f"A :\n {A}")
+        print(f"Q (Cofactor Matrix) :\n {Q}")
     
         return GDOP, PDOP, HDOP, VDOP, TDOP
 
@@ -697,7 +671,65 @@ class GNSS:
         lam=dms_to_radian(lam1,0,0)
         return np.array([[-np.sin(phi)*np.cos(lam), -np.sin(phi)*np.sin(lam), np.cos(phi)],
                          [-np.sin(lam), np.cos(lam), 0],
-                         [np.cos(phi)*np.cos(lam), np.cos(phi)*np.sin(lam),np.sin(phi)]])
+                         [np.cos(phi)*np.cos(lam), np.cos(phi)*np.sin(lam),np.sin(phi)]]) #NEU
+    @staticmethod
+    def ecef_to_DOP(sats_ecef, sta_ecef):
+        
+        x, y, z = sta_ecef[0], sta_ecef[1], sta_ecef[2]
+        a = 6378137.0
+        b = 6356752.3142
+        e2 = (a**2 - b**2) / a**2
+        ep2 = (a**2 - b**2) / b**2
+        
+        p = math.sqrt(x**2 + y**2)
+        th = math.atan2(a * z, b * p)
+        
+        lon_rad = math.atan2(y, x)
+        lat_rad = math.atan2(z + ep2 * b * math.sin(th)**3, p - e2 * a * math.cos(th)**3)
+        
+        R_enu = np.array([
+            [-math.sin(lon_rad), math.cos(lon_rad), 0],
+            [-math.sin(lat_rad) * math.cos(lon_rad), -math.sin(lat_rad) * math.sin(lon_rad), math.cos(lat_rad)],
+            [math.cos(lat_rad) * math.cos(lon_rad), math.cos(lat_rad) * math.sin(lon_rad), math.sin(lat_rad)]
+        ])
+        
+        A_list = []
+        for sat in sats_ecef:
+            dx = sat[0] - x
+            dy = sat[1] - y
+            dz = sat[2] - z
+            rho = math.sqrt(dx**2 + dy**2 + dz**2)
+            
+            ax = -dx / rho
+            ay = -dy / rho
+            az = -dz / rho
+            A_list.append([ax, ay, az, 1])
+            
+        A = np.array(A_list)
+        
+        Q = np.linalg.inv(A.T @ A)
+        Q_xyz = Q[:3, :3]
+        Q_enu = R_enu @ Q_xyz @ R_enu.T
+        
+        GDOP = math.sqrt(np.trace(Q))
+        PDOP = math.sqrt(np.trace(Q_xyz))
+        HDOP = math.sqrt(Q_enu[0, 0] + Q_enu[1, 1]) 
+        VDOP = math.sqrt(Q_enu[2, 2])               
+        TDOP = math.sqrt(Q[3, 3])
+
+        print(f"A :\n {A}")
+        print(f"Q :\n {Q}")
+        print(f"Q_xyz :\n {Q_xyz}")
+        print(f"Q_enu :\n {Q_enu}")
+        
+        print("\n--- HASSASİYET ANALİZİ (DOP) ---")
+        print(f"GDOP : {GDOP}")
+        print(f"PDOP : {PDOP}")
+        print(f"HDOP : {HDOP}")
+        print(f"VDOP : {VDOP}")
+        print(f"TDOP : {TDOP}\n")
+        
+        return GDOP, PDOP, HDOP, VDOP, TDOP
 
     @staticmethod
     def calculate_satellite_angles(konum):
@@ -713,33 +745,79 @@ class GNSS:
         return elev_deg, azimuth_deg
     
     @staticmethod
-    def tum_uydulari_hesapla(sat_array, alici_x, alici_y, alici_z, R_matrisi):
-        sonuclar = {} 
-        print("Sat Angles (azimut/elevation):\n")
+    def tum_uydulari_hesapla(sat_array, alici_x, alici_y, alici_z):
+        a = 6378137.0
+        b = 6356752.3142
+        e2 = (a**2 - b**2) / a**2
+        ep2 = (a**2 - b**2) / b**2
+        
+        p = math.sqrt(alici_x**2 + alici_y**2)
+        th = math.atan2(a * alici_z, b * p)
+        
+        lon_rad = math.atan2(alici_y, alici_x)
+        lat_rad = math.atan2(alici_z + ep2 * b * math.sin(th)**3, p - e2 * a * math.cos(th)**3)
+        
+        R_enu = np.array([
+            [-math.sin(lon_rad), math.cos(lon_rad), 0],
+            [-math.sin(lat_rad) * math.cos(lon_rad), -math.sin(lat_rad) * math.sin(lon_rad), math.cos(lat_rad)],
+            [math.cos(lat_rad) * math.cos(lon_rad), math.cos(lat_rad) * math.sin(lon_rad), math.sin(lat_rad)]
+        ])
+
+        sonuclar = {}
+        print("\n--- UYDU GÖRÜŞ AÇILARI ---")
+        
         for i, uydu_koor in enumerate(sat_array):
-            uydu_id = f"Uydu_{i+1}" 
+            uydu_id = f"Uydu_{i+1}"
             ux = float(uydu_koor[0].item())
             uy = float(uydu_koor[1].item())
             uz = float(uydu_koor[2].item())
-        
+            
             Dx = ux - alici_x
             Dy = uy - alici_y
             Dz = uz - alici_z
-        
-            enu = R_matrisi @ np.array([[Dx], [Dy], [Dz]])
-            zenith, azimuth = GNSS.calculate_satellite_angles(enu)
-        
-            sonuclar[uydu_id] = {"Zenit": zenith, "Azimut": azimuth}
-            print(f"{uydu_id} Zenit Açisi  : {zenith} derece")
-            print(f"{uydu_id} Azimut Açisi : {azimuth} derece\n")
-        
+            enu = R_enu @ np.array([[Dx], [Dy], [Dz]])
+            E = enu[0][0]
+            N = enu[1][0]
+            U = enu[2][0]
+            
+            elev_rad = math.atan2(U, math.sqrt(E**2 + N**2))
+            elev_deg = math.degrees(elev_rad)
+            
+            azimut_rad = math.atan2(E, N)
+            azimut_deg = math.degrees(azimut_rad) % 360.0
+            
+            zenit_deg = 90.0 - elev_deg
+            
+            sonuclar[uydu_id] = {
+                "Elevasyon": elev_deg, 
+                "Azimut": azimut_deg, 
+                "Zenit": zenit_deg
+            }
+            
+            print(f"{uydu_id: <8} -> Elev: {elev_deg:6.2f}° | Azimut: {azimut_deg:7.2f}° | Zenit: {zenit_deg:6.2f}°")
+            
         return sonuclar
     
     @staticmethod
-    def gorur_gormez_analizi(sat_array, alici_x, alici_y, alici_z, R_matrisi):
+    def gorur_gormez_analizi(sat_array, alici_x, alici_y, alici_z, kesme_acisi=0.0):
+        a = 6378137.0
+        b = 6356752.3142
+        e2 = (a**2 - b**2) / a**2
+        ep2 = (a**2 - b**2) / b**2
+        
+        p = math.sqrt(alici_x**2 + alici_y**2)
+        th = math.atan2(a * alici_z, b * p)
+        
+        lon_rad = math.atan2(alici_y, alici_x)
+        lat_rad = math.atan2(alici_z + ep2 * b * math.sin(th)**3, p - e2 * a * math.cos(th)**3)
+        R_enu = np.array([
+            [-math.sin(lon_rad), math.cos(lon_rad), 0],
+            [-math.sin(lat_rad) * math.cos(lon_rad), -math.sin(lat_rad) * math.sin(lon_rad), math.cos(lat_rad)],
+            [math.cos(lat_rad) * math.cos(lon_rad), math.cos(lat_rad) * math.sin(lon_rad), math.sin(lat_rad)]
+        ])
 
-        kesme_acisi=0
         gorunen_uydular = [] 
+        print(f"\n--- GÖRÜNÜRLÜK ANALİZİ (Kesme Açısı: {kesme_acisi}°) ---")
         
         for i, uydu_koor in enumerate(sat_array):
             uydu_id = f"Uydu_{i+1}" 
@@ -751,19 +829,43 @@ class GNSS:
             Dy = uy - alici_y
             Dz = uz - alici_z
         
-            enu = R_matrisi @ np.array([[Dx], [Dy], [Dz]])
-            elev, azimuth = GNSS.calculate_satellite_angles(enu)
+            enu = R_enu @ np.array([[Dx], [Dy], [Dz]])
+            E, N, U = enu[0][0], enu[1][0], enu[2][0]
             
-            if elev > kesme_acisi:
-                print(f"{uydu_id} -> Elev: {elev}°, Azimut: {azimuth}°")
+            elev_deg = math.degrees(math.atan2(U, math.sqrt(E**2 + N**2)))
+            azimut_deg = math.degrees(math.atan2(E, N)) % 360.0
+            
+            if elev_deg > kesme_acisi:
+                print(f"{uydu_id: <8} -> Elev: {elev_deg:6.2f}°, Azimut: {azimut_deg:7.2f}°")
                 gorunen_uydular.append(uydu_koor)
             else:
-                print(f"{uydu_id} -> Görmez ")
+                print(f"{uydu_id: <8} -> GORUNMEZ")
 
         gorunen_sat_array = np.array(gorunen_uydular)
-        
-        print(f"\nToplam {len(sat_array)} uydudan {len(gorunen_sat_array)} tanesi kullanıma uygun.")
+        print(f"\nToplam {len(sat_array)} uydudan {len(gorunen_sat_array)} tanesi hesaplamalara dahil ediliyor.")
         
         return gorunen_sat_array
+
+def mapping_func(z):
+        z0=dms_to_radian(z,0,0)
+        return 1/math.cos(z0)
+
+class troposferic_delay:
+    def __init__(self,phi,h):
+        self.phi0=dms_to_radian((2*phi), 0, 0)
+        self.h0=h
+        
+        pass
+    def g_(self):
+        return 1 - (0.0026 * np.cos(self.phi0)) - (0.00028 * (self.h0/1000))
+
+    def d_kuru(self, p0):
+        return (0.002277 * (1013.25)*p0) / (self.g_())
+    
+    def d_islak(self, t0, e0):
+        
+        deger = ((1255 / (t0+273.15)) + 0.05) * e0
+        return (0.002277 * deger) / (self.g_())
+    
 
 print("----------- paramDic_2 basari ile import edildi -----------")
