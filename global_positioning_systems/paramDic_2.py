@@ -866,6 +866,35 @@ class troposferic_delay:
         
         deger = ((1255 / (t0+273.15)) + 0.05) * e0
         return (0.002277 * deger) / (self.g_())
+
+class kod_faz_kombinasyonu:
+    f1 = 1575.42e6  # Hz
+    f2 = 1227.60e6  # Hz
+    C0 = 299792458  # m/s
+
+    def __init__(self, m, n):
+        self.m = m
+        self.n = n
+
+    def dalgaboyu(self):
+        return self.C0 / (self.m * self.f1 + self.n * self.f2)
+
+    def iyonosferik_etki(self):
+        return (self.m * self.f2 + self.n * self.f1) / (self.m * self.f1 + self.n * self.f2)
+
+    def sinyal_gurultu(self):
+        oran = 0.1 / (2 * math.pi)
+        oran2 = math.sqrt(self.m**2 + self.n**2) * oran
+        return oran2 * self.dalgaboyu()  # ← self geçirme
+
+    def oransal_gurultu(self):
+        return self.sinyal_gurultu() / self.dalgaboyu()
     
+    def frekans(self):
+        return (self.m*self.f1 + self.n*self.f2)/1000000
+
+
+    
+
 
 print("----------- paramDic_2 basari ile import edildi -----------")
